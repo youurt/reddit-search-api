@@ -117,9 +117,99 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"index.js":[function(require,module,exports) {
+})({"redditapi.js":[function(require,module,exports) {
+"use strict";
 
-},{}],"../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _default = {
+  search: function search(searchTerm, searchLimit, sortBy) {
+    return fetch("http://www.reddit.com/search.json?q=".concat(searchTerm, "&sort=").concat(sortBy, "&limit=").concat(searchLimit)).then(function (res) {
+      return res.json();
+    }).then(function (data) {
+      return data.data.children.map(function (data) {
+        return data.data;
+      });
+    }).catch(function (err) {
+      return console.log(err);
+    });
+  }
+};
+exports.default = _default;
+},{}],"index.js":[function(require,module,exports) {
+"use strict";
+
+var _redditapi = _interopRequireDefault(require("./redditapi"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// Get DOM Elements
+var searchForm = document.getElementById('search-form');
+var searchInput = document.getElementById('search-input'); // Form Event listener
+
+searchForm.addEventListener('submit', function (e) {
+  // Get search term
+  var searchTerm = searchInput.value; // Get sort
+
+  var sortBy = document.querySelector('input[name="sortby"]:checked').value; // Get limit
+
+  var searchLimit = document.getElementById('limit').value; // Check input
+
+  if (searchTerm === '') {
+    // Show a message
+    showMessage('Please add a search term', 'alert-danger');
+  } // Clear input
+
+
+  searchInput.value = ''; // Search Reddit
+
+  _redditapi.default.search(searchTerm, searchLimit, sortBy).then(function (results) {
+    var output = '<div class="card-columns">'; // Loop through posts
+
+    results.forEach(function (post) {
+      // Check for image
+      var image = post.preview ? post.preview.images[0].source.url : 'https://logos-download.com/wp-content/uploads/2016/06/Reddit_logo_full_1.png';
+      output += "<div class=\"card\">\n                <img src=".concat(image, " class=\"card-img-top\">\n                <div class=\"card-body\">\n                  <h5 class=\"card-title\">").concat(truncateText(post.title, 100), "</h5>\n                  <p class=\"card-text\">").concat(truncateText(post.selftext, 100), "</p>\n                  <a href=\"").concat(post.url, "\" target=\"_blank\" class=\"btn btn-dark\">Read More</a>\n                </div>\n                <hr>\n                <span class=\"badge badge-secondary\">Subreddit: ").concat(post.subreddit, "</span>\n                <span class=\"badge badge-dark\">Score: ").concat(post.score, "</span>\n              </div>");
+      document.getElementById("results").innerHTML = output;
+    });
+  });
+
+  e.preventDefault();
+}); // Show message
+
+var showMessage = function showMessage(message, className) {
+  // Create the div
+  var div = document.createElement('div'); // Add classes
+
+  div.className = "alert ".concat(className); // Add the text
+
+  div.appendChild(document.createTextNode(message)); // Get the parent
+
+  var searchContainer = document.getElementById('search-container'); // Get search
+
+  var search = document.getElementById('search'); // Insert the message
+
+  searchContainer.insertBefore(div, search); // Timeout alert
+
+  setTimeout(function () {
+    return document.querySelector('.alert').remove();
+  }, 3000);
+}; // Trancate Text
+
+
+var truncateText = function truncateText(str, num) {
+  // If the length of str is less than or equal to num
+  // just return str--don't truncate it
+  if (str.length <= num) {
+    return str;
+  } // Return str truncated with '...' concatenated to the end of str
+
+
+  return str.slice(0, num) + '...';
+};
+},{"./redditapi":"redditapi.js"}],"../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
